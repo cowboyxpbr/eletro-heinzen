@@ -748,7 +748,7 @@ class BannerEletroHeinzen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double largura = MediaQuery.of(context).size.width;
-    final bool ehDesktop = largura > 650;
+    final bool ehDesktop = largura > 700;
 
     return Container(
       width: double.infinity,
@@ -759,35 +759,32 @@ class BannerEletroHeinzen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: ehDesktop ? 105.0 : 135.0,
-              ),
-              child: SizedBox(
+            SizedBox(
+              width: double.infinity,
+              height: ehDesktop ? 130.0 : null,
+              child: Image.asset(
+                'cabecalho.png',
                 width: double.infinity,
-                child: Image.asset(
+                fit: ehDesktop ? BoxFit.fill : BoxFit.fitWidth,
+                alignment: Alignment.center,
+                errorBuilder: (context, error, stackTrace) => Image.asset(
                   'assets/cabecalho.png',
                   width: double.infinity,
-                  fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
+                  fit: ehDesktop ? BoxFit.fill : BoxFit.fitWidth,
                   alignment: Alignment.center,
-                  errorBuilder: (context, error, stackTrace) => Image.asset(
-                    'cabecalho.png',
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 60,
                     width: double.infinity,
-                    fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
+                    color: const Color(0xFF071E3D),
                     alignment: Alignment.center,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 55,
-                      color: const Color(0xFF071E3D),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'ELÉTRO HEINZEN',
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-                      ),
+                    child: const Text(
+                      'ELÉTRO HEINZEN',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                     ),
                   ),
                 ),
               ),
-            ),Container(
+            ),),Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: const BoxDecoration(

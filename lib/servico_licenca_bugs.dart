@@ -7,6 +7,8 @@ class ServicoLicencaBugs {
   static void inicializarCapturaDeErrosGlobal() {}
   static void abrirModalReportarBug(BuildContext context, UsuarioApp usuario) {}
   static void abrirModalCadastroEmpresaComChave(BuildContext context) {}
+  static String identificarPlano(String? chave) => 'ILIMITADO';
+  static int diasDoPlano(String plano) => 36500;
 
   static Stream<List<Map<String, dynamic>>> streamTabelaSegura(
     String tabela, {

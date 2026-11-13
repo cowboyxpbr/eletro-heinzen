@@ -84,7 +84,7 @@ class _TelaLoginState extends State<TelaLogin> {
     try {
       final res = await Supabase.instance.client.from('usuarios').select('id').ilike('cargo', 'master').limit(1);
       if (res.isEmpty && mounted) {
-        
+        {}
       }
     } catch (_) {}
   }
@@ -383,7 +383,20 @@ class _TelaLoginState extends State<TelaLogin> {
                               : const Text('ENTRAR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         ),
                       ),
-                      
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 0,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.amberAccent),
+                            foregroundColor: Colors.amberAccent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.vpn_key_rounded, size: 18),
+                          label: const Text('CADASTRAR ADM MASTER & EMPRESA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+                          onPressed: () => ServicoLicencaBugs.abrirModalCadastroEmpresaComChave(context),
+                        ),
                       ),
                     ],
                   ),

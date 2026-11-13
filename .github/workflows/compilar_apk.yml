@@ -1,0 +1,79 @@
+name: Compilar APK Eletro Heinzen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar o Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Configurar o Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 1. Gerar Pasta Android e Web (Mantendo pacote original com.example.eletro_heinzen)
+        run: flutter create . --platforms=android,web
+
+      - name: 2. Injetar google-services.json e Chave Fixa Oficial
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          mkdir -p ~/.android
+          cp chave_assinatura.keystore ~/.android/debug.keystore
+          cp chave_assinatura.keystore android/app/debug.keystore
+
+          if [ -f "android/app/build.gradle.kts" ]; then
+            sed -i '/signingConfigs {/a \        getByName("debug") { storeFile = file("debug.keystore") }' android/app/build.gradle.kts
+          elif [ -f "android/app/build.gradle" ]; then
+            sed -i '/signingConfigs {/a \        debug { storeFile file("debug.keystore") }' android/app/build.gradle
+          fi
+
+          if [ -f "android/settings.gradle.kts" ]; then
+            sed -i '/plugins {/a \    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
+            sed -i '/plugins {/a \    id("com.google.gms.google-services")' android/app/build.gradle.kts
+          elif [ -f "android/settings.gradle" ]; then
+            sed -i '/plugins {/a \    id "com.google.gms.google-services" version "4.4.2" apply false' android/settings.gradle
+            sed -i '/plugins {/a \    id "com.google.gms.google-services"' android/app/build.gradle
+          else
+            sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
+            echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+          fi
+
+      - name: 3. Instalar Dependências e Plugins
+        run: flutter pub get
+
+      - name: 4. Aplicar Ícone Oficial do App
+        run: dart run flutter_launcher_icons
+
+      - name: 5. Compilar o APK Release Versionado (Build alto p/ atualizar por cima sem conflito)
+        run: flutter build apk --release --build-number=100${{ github.run_number }}
+
+      - name: 6. Compilar Versão Web para Escritório
+        run: flutter build web --release
+
+      - name: 7. Disponibilizar APK para Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-eletro-heinzen-v${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: 8. Disponibilizar Painel Web para Escritório
+        uses: actions/upload-artifact@v4
+        with:
+          name: painel-web-eletro-heinzen-v${{ github.run_number }}
+          path: build/web

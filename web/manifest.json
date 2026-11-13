@@ -1,0 +1,11 @@
+{
+    "name": "Eletro Heinzen",
+    "short_name": "Eletro Heinzen",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0B111E",
+    "theme_color": "#00D4FF",
+    "description": "Eletro Heinzen",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}

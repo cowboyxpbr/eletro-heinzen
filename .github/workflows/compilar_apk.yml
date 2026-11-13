@@ -25,40 +25,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 1. Gerar Pasta Android e Web (Mantendo pacote original com.example.eletro_heinzen)
+      - name: 1. Gerar Pasta Android e Web
         run: flutter create . --platforms=android,web
 
-      - name: 2. Injetar google-services.json, Chave Fixa Original (Secrets) e Plugins
+      - name: 2. Injetar google-services.json e Plugins
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          CHAVE_FIXA: ${{ secrets.CHAVE_FIXA }}
         run: |
           echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-          mkdir -p ~/.android
-
-          if [ -n "$CHAVE_FIXA" ]; then
-            echo "$CHAVE_FIXA" | base64 --decode > ~/.android/debug.keystore
-            echo "$CHAVE_FIXA" | base64 --decode > android/app/debug.keystore
-          else
-            cp chave_assinatura.keystore ~/.android/debug.keystore
-            cp chave_assinatura.keystore android/app/debug.keystore
-          fi
-
-          if [ -f "android/app/build.gradle.kts" ]; then
-            sed -i '/signingConfigs {/a \        getByName("debug") { storeFile = file("debug.keystore") }' android/app/build.gradle.kts
-          elif [ -f "android/app/build.gradle" ]; then
-            sed -i '/signingConfigs {/a \        debug { storeFile file("debug.keystore") }' android/app/build.gradle
-          fi
-
           if [ -f "android/settings.gradle.kts" ]; then
             sed -i '/plugins {/a \    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
             sed -i '/plugins {/a \    id("com.google.gms.google-services")' android/app/build.gradle.kts
           elif [ -f "android/settings.gradle" ]; then
             sed -i '/plugins {/a \    id "com.google.gms.google-services" version "4.4.2" apply false' android/settings.gradle
             sed -i '/plugins {/a \    id "com.google.gms.google-services"' android/app/build.gradle
-          else
-            sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
-            echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
           fi
 
       - name: 3. Instalar Dependências e Plugins
@@ -67,37 +47,18 @@ jobs:
       - name: 4. Aplicar Ícone Oficial do App
         run: dart run flutter_launcher_icons
 
-      - name: 5. Compilar APK e Assinar com as 3 Chaves (Anti-Conflito Total)
-        env:
-          CHAVE_FIXA: ${{ secrets.CHAVE_FIXA }}
+      - name: 5. Compilar e Assinar APK Oficial (Sem Conflito)
         run: |
           mkdir -p apks_prontos
           flutter build apk --release --build-number=100${{ github.run_number }}
           APK_BASE="build/app/outputs/flutter-apk/app-release.apk"
           APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
-
-          # 1. Assinado com a CHAVE_FIXA original dos Secrets do GitHub
-          if [ -n "$CHAVE_FIXA" ]; then
-            echo "$CHAVE_FIXA" | base64 --decode > /tmp/secret.keystore
-            $APKSIGNER sign --ks /tmp/secret.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk "$APK_BASE" || cp "$APK_BASE" apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk
-          else
-            cp "$APK_BASE" apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk
-          fi
-
-          # 2. Assinado com a eletro.keystore
-          if [ -f "eletro.keystore" ]; then
-            $APKSIGNER sign --ks eletro.keystore --ks-pass "pass:eletro123" --ks-key-alias "eletro" --key-pass "pass:eletro123" --out apks_prontos/2-Eletro-Heinzen-ChaveEletroKeystore.apk "$APK_BASE" || true
-          fi
-
-          # 3. Assinado com a chave_assinatura.keystore
-          if [ -f "chave_assinatura.keystore" ]; then
-            $APKSIGNER sign --ks chave_assinatura.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/3-Eletro-Heinzen-ChaveNova.apk "$APK_BASE" || true
-          fi
+          $APKSIGNER sign --ks chave_assinatura.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/Eletro-Heinzen-v${{ github.run_number }}.apk "$APK_BASE"
 
       - name: 6. Compilar Versão Web para Escritório
         run: flutter build web --release
 
-      - name: 7. Disponibilizar APKs Assinados para Download
+      - name: 7. Disponibilizar APK Oficial para Download
         uses: actions/upload-artifact@v4
         with:
           name: app-eletro-heinzen-v${{ github.run_number }}

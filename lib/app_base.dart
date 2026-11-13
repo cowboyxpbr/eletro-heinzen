@@ -779,12 +779,18 @@ class BannerEletroHeinzen extends StatelessWidget {
                     alignment: Alignment.center,
                     child: const Text(
                       'ELÉTRO HEINZEN',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),),Container(
+            ),
+            Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: const BoxDecoration(
@@ -816,7 +822,6 @@ class BannerEletroHeinzen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                   ],
-
                   if (subtituloTela.trim().isNotEmpty)
                     Expanded(
                       child: Container(
@@ -842,7 +847,6 @@ class BannerEletroHeinzen extends StatelessWidget {
                     )
                   else
                     const Spacer(),
-
                   if (acaoDireita != null) ...[
                     const SizedBox(width: 8),
                     acaoDireita!,
@@ -856,7 +860,6 @@ class BannerEletroHeinzen extends StatelessWidget {
     );
   }
 }
-
 class FundoComArteApp extends StatelessWidget {
   final Widget child;
   const FundoComArteApp({super.key, required this.child});

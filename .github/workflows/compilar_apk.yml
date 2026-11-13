@@ -28,14 +28,21 @@ jobs:
       - name: 1. Gerar Pasta Android e Web (Mantendo pacote original com.example.eletro_heinzen)
         run: flutter create . --platforms=android,web
 
-      - name: 2. Injetar google-services.json e Chave Fixa Oficial
+      - name: 2. Injetar google-services.json, Chave Fixa Original (Secrets) e Plugins
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          CHAVE_FIXA: ${{ secrets.CHAVE_FIXA }}
         run: |
           echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
           mkdir -p ~/.android
-          cp chave_assinatura.keystore ~/.android/debug.keystore
-          cp chave_assinatura.keystore android/app/debug.keystore
+
+          if [ -n "$CHAVE_FIXA" ]; then
+            echo "$CHAVE_FIXA" | base64 --decode > ~/.android/debug.keystore
+            echo "$CHAVE_FIXA" | base64 --decode > android/app/debug.keystore
+          else
+            cp chave_assinatura.keystore ~/.android/debug.keystore
+            cp chave_assinatura.keystore android/app/debug.keystore
+          fi
 
           if [ -f "android/app/build.gradle.kts" ]; then
             sed -i '/signingConfigs {/a \        getByName("debug") { storeFile = file("debug.keystore") }' android/app/build.gradle.kts
@@ -60,17 +67,41 @@ jobs:
       - name: 4. Aplicar Ícone Oficial do App
         run: dart run flutter_launcher_icons
 
-      - name: 5. Compilar o APK Release Versionado (Build alto p/ atualizar por cima sem conflito)
-        run: flutter build apk --release --build-number=100${{ github.run_number }}
+      - name: 5. Compilar APK e Assinar com as 3 Chaves (Anti-Conflito Total)
+        env:
+          CHAVE_FIXA: ${{ secrets.CHAVE_FIXA }}
+        run: |
+          mkdir -p apks_prontos
+          flutter build apk --release --build-number=100${{ github.run_number }}
+          APK_BASE="build/app/outputs/flutter-apk/app-release.apk"
+          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
+
+          # 1. Assinado com a CHAVE_FIXA original dos Secrets do GitHub
+          if [ -n "$CHAVE_FIXA" ]; then
+            echo "$CHAVE_FIXA" | base64 --decode > /tmp/secret.keystore
+            $APKSIGNER sign --ks /tmp/secret.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk "$APK_BASE" || cp "$APK_BASE" apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk
+          else
+            cp "$APK_BASE" apks_prontos/1-Eletro-Heinzen-ChaveOriginalGitHub.apk
+          fi
+
+          # 2. Assinado com a eletro.keystore
+          if [ -f "eletro.keystore" ]; then
+            $APKSIGNER sign --ks eletro.keystore --ks-pass "pass:eletro123" --ks-key-alias "eletro" --key-pass "pass:eletro123" --out apks_prontos/2-Eletro-Heinzen-ChaveEletroKeystore.apk "$APK_BASE" || true
+          fi
+
+          # 3. Assinado com a chave_assinatura.keystore
+          if [ -f "chave_assinatura.keystore" ]; then
+            $APKSIGNER sign --ks chave_assinatura.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/3-Eletro-Heinzen-ChaveNova.apk "$APK_BASE" || true
+          fi
 
       - name: 6. Compilar Versão Web para Escritório
         run: flutter build web --release
 
-      - name: 7. Disponibilizar APK para Download
+      - name: 7. Disponibilizar APKs Assinados para Download
         uses: actions/upload-artifact@v4
         with:
           name: app-eletro-heinzen-v${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/*.apk
+          path: apks_prontos/*.apk
 
       - name: 8. Disponibilizar Painel Web para Escritório
         uses: actions/upload-artifact@v4

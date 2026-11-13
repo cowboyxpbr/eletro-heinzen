@@ -745,11 +745,10 @@ class BannerEletroHeinzen extends StatelessWidget {
     this.acaoDireita,
   });
 
-    @override
+  @override
   Widget build(BuildContext context) {
     final double largura = MediaQuery.of(context).size.width;
     final bool ehDesktop = largura > 650;
-    final double alturaBanner = ehDesktop ? 120.0 : (largura * 0.28).clamp(80.0, 130.0);
 
     return Container(
       width: double.infinity,
@@ -760,31 +759,35 @@ class BannerEletroHeinzen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: alturaBanner,
-              width: double.infinity,
-              color: const Color(0xFF071426),
-              child: Image.asset(
-                'assets/cabecalho.png',
-                fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
-                alignment: Alignment.center,
-                errorBuilder: (context, error, stackTrace) => Image.asset(
-                  'cabecalho.png',
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: ehDesktop ? 105.0 : 135.0,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Image.asset(
+                  'assets/cabecalho.png',
+                  width: double.infinity,
                   fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
                   alignment: Alignment.center,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: alturaBanner,
-                    color: const Color(0xFF071E3D),
+                  errorBuilder: (context, error, stackTrace) => Image.asset(
+                    'cabecalho.png',
+                    width: double.infinity,
+                    fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
                     alignment: Alignment.center,
-                    child: const Text(
-                      'O.S. PRIME',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 55,
+                      color: const Color(0xFF071E3D),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'ELÉTRO HEINZEN',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Container(
+            ),Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: const BoxDecoration(

@@ -26,28 +26,36 @@ jobs:
           cache: true
 
       - name: 1. Gerar Pasta Android e Web
-        run: flutter create . --platforms=android,web
-          # Injeta permissao obrigatoria de notificacao do Android 13+
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>' android/app/src/main/AndroidManifest.xml
+        run: |
+          flutter create . --platforms=android,web
 
-      - name: 2. Injetar google-services.json e Plugins
+      - name: 2. Injetar google-services.json, Permissoes e Plugins
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+          # Permissoes de notificacao do Android
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>' android/app/src/main/AndroidManifest.xml
+
           if [ -f "android/settings.gradle.kts" ]; then
             sed -i '/plugins {/a \    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
             sed -i '/plugins {/a \    id("com.google.gms.google-services")' android/app/build.gradle.kts
           elif [ -f "android/settings.gradle" ]; then
             sed -i '/plugins {/a \    id "com.google.gms.google-services" version "4.4.2" apply false' android/settings.gradle
             sed -i '/plugins {/a \    id "com.google.gms.google-services"' android/app/build.gradle
+          else
+            sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
+            echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
           fi
 
       - name: 3. Instalar Dependências e Plugins
-        run: flutter pub get
+        run: |
+          flutter pub get
 
       - name: 4. Aplicar Ícone Oficial do App
-        run: dart run flutter_launcher_icons
+        run: |
+          dart run flutter_launcher_icons
 
       - name: 5. Compilar e Assinar APK Oficial (Sem Conflito)
         run: |
@@ -58,7 +66,8 @@ jobs:
           $APKSIGNER sign --ks chave_assinatura.keystore --ks-pass "pass:android" --ks-key-alias "androiddebugkey" --key-pass "pass:android" --out apks_prontos/Eletro-Heinzen-v${{ github.run_number }}.apk "$APK_BASE"
 
       - name: 6. Compilar Versão Web para Escritório
-        run: flutter build web --release
+        run: |
+          flutter build web --release
 
       - name: 7. Disponibilizar APK Oficial para Download
         uses: actions/upload-artifact@v4

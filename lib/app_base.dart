@@ -243,17 +243,24 @@ class EquipamentoRelatorio {
 class FotoRelatorio {
   String caminhoArquivo;
   String legenda;
+  String avaria;
 
-  FotoRelatorio({required this.caminhoArquivo, required this.legenda});
+  FotoRelatorio({
+    required this.caminhoArquivo,
+    required this.legenda,
+    this.avaria = '',
+  });
 
   Map<String, dynamic> toMap() => {
     'caminhoArquivo': caminhoArquivo,
     'legenda': legenda,
+    'avaria': avaria,
   };
 
   factory FotoRelatorio.fromMap(Map<String, dynamic> m) => FotoRelatorio(
     caminhoArquivo: m['caminhoArquivo'] ?? '',
     legenda: m['legenda'] ?? '',
+    avaria: m['avaria'] ?? '',
   );
 }
 

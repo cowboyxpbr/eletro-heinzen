@@ -1,4 +1,7 @@
 import 'dart:typed_data';
+import 'universal_io.dart';
+import 'servico_arquivo.dart';
+import 'dart:typed_data';
 // ============================================================================
 // ARQUIVO BASE, MODELOS, CACHE OFFLINE, CORES, ONESIGNAL E ENGINE PDF
 // lib/app_base.dart (VERSÃO COMPLETA E UNIFICADA: ELETRO HEINZEN)
@@ -240,26 +243,140 @@ class EquipamentoRelatorio {
 class FotoRelatorio {
   String caminhoArquivo;
   String legenda;
-  String avaria;
 
-  FotoRelatorio({
-    required this.caminhoArquivo,
-    required this.legenda,
-    this.avaria = '',
-  });
+  FotoRelatorio({required this.caminhoArquivo, required this.legenda});
 
   Map<String, dynamic> toMap() => {
     'caminhoArquivo': caminhoArquivo,
     'legenda': legenda,
-    'avaria': avaria,
   };
 
   factory FotoRelatorio.fromMap(Map<String, dynamic> m) => FotoRelatorio(
     caminhoArquivo: m['caminhoArquivo'] ?? '',
     legenda: m['legenda'] ?? '',
-    avaria: m['avaria'] ?? '',
   );
 }
+
+class RelatorioCondominioModel {
+  String? id;
+  String nomeCondominio;
+  String sindicoResponsavel;
+  String telefone;
+  String cnpjCpf;
+  String enderecoCompleto;
+  String tipoDocumento;
+  String tituloLaudo;
+  String dataEmissao;
+  String tecnico;
+  List<EquipamentoRelatorio> equipamentos;
+  String diagnosticoTecnico;
+  String recomendacoesServicos;
+  List<FotoRelatorio> fotos;
+
+  RelatorioCondominioModel({
+    this.id,
+    required this.nomeCondominio,
+    required this.sindicoResponsavel,
+    required this.telefone,
+    this.cnpjCpf = '',
+    required this.enderecoCompleto,
+    required this.tipoDocumento,
+    required this.tituloLaudo,
+    required this.dataEmissao,
+    String? tecnico,
+    String? tecnicoResponsavel,
+    required this.equipamentos,
+    required this.diagnosticoTecnico,
+    required this.recomendacoesServicos,
+    required this.fotos,
+  }) : tecnico = tecnico ?? tecnicoResponsavel ?? '';
+
+  String get tecnicoResponsavel => tecnico;
+  set tecnicoResponsavel(String v) => tecnico = v;
+
+  Map<String, dynamic> toMap() => {
+    if (id != null) 'id': id,
+    'nomeCondominio': nomeCondominio,
+    'sindicoResponsavel': sindicoResponsavel,
+    'telefone': telefone,
+    'cnpjCpf': cnpjCpf,
+    'enderecoCompleto': enderecoCompleto,
+    'tipoDocumento': tipoDocumento,
+    'tituloLaudo': tituloLaudo,
+    'dataEmissao': dataEmissao,
+    'tecnico': tecnico,
+    'equipamentos': equipamentos.map((e) => e.toMap()).toList(),
+    'diagnosticoTecnico': diagnosticoTecnico,
+    'recomendacoesServicos': recomendacoesServicos,
+    'fotos': fotos.map((f) => f.toMap()).toList(),
+  };
+
+  factory RelatorioCondominioModel.fromMap(Map<String, dynamic> m) => RelatorioCondominioModel(
+    id: m['id']?.toString(),
+    nomeCondominio: m['nomeCondominio'] ?? '',
+    sindicoResponsavel: m['sindicoResponsavel'] ?? '',
+    telefone: m['telefone'] ?? '',
+    cnpjCpf: (m['cnpjCpf'] ?? m['cnpj'] ?? m['cpf_cnpj'] ?? '').toString(),
+    enderecoCompleto: m['enderecoCompleto'] ?? '',
+    tipoDocumento: m['tipoDocumento'] ?? 'RELATÓRIO TÉCNICO DE CAMPO',
+    tituloLaudo: m['tituloLaudo'] ?? 'LAUDO TÉCNICO',
+    dataEmissao: m['dataEmissao'] ?? '',
+    tecnico: (m['tecnico'] ?? m['tecnicoResponsavel'] ?? '').toString(),
+    equipamentos: (m['equipamentos'] as List? ?? []).map((e) => EquipamentoRelatorio.fromMap(Map<String, dynamic>.from(e))).toList(),
+    diagnosticoTecnico: m['diagnosticoTecnico'] ?? '',
+    recomendacoesServicos: m['recomendacoesServicos'] ?? '',
+    fotos: (m['fotos'] as List? ?? []).map((f) => FotoRelatorio.fromMap(Map<String, dynamic>.from(f))).toList(),
+  );
+}
+
+class NotaApp {
+  String id;
+  String titulo;
+  String conteudo;
+  String dataHora;
+
+  NotaApp({
+    required this.id,
+    required this.titulo,
+    required this.conteudo,
+    required this.dataHora,
+  });
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'titulo': titulo,
+    'conteudo': conteudo,
+    'dataHora': dataHora,
+  };
+
+  factory NotaApp.fromMap(Map<String, dynamic> m) => NotaApp(
+    id: m['id'] ?? '',
+    titulo: m['titulo'] ?? '',
+    conteudo: m['conteudo'] ?? '',
+    dataHora: m['dataHora'] ?? '',
+  );
+}
+
+// ============================================================================
+// CACHE OFFLINE E PERSISTÊNCIA LOCAL
+// ============================================================================
+class CacheOffline {
+  static const _kSessao = 'eh_sessao_ativa';
+  static const _kUsuarios = 'eh_usuarios_locais';
+  static const _kClientes = 'eh_clientes_locais';
+  static const _kNotas = 'eh_notas_locais';
+  static const _kFilaServicos = 'eh_fila_servicos_offline';
+  static const _kSeguranca = 'eh_seguranca_gestao_master';
+  static const _kRelatoriosCondominio = 'eh_relatorios_condominio';
+
+  static Future<void> salvarSessao(UsuarioApp u, bool manterLogado) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (manterLogado) {
+      await prefs.setString(_kSessao, jsonEncode(u.toMap()));
+    } else {
+      await prefs.remove(_kSessao);
+    }
+  }
 
   static Future<UsuarioApp?> obterSessaoAtiva() async {
     final prefs = await SharedPreferences.getInstance();
@@ -473,30 +590,15 @@ class ServicoNotificacaoOneSignal {
     required String titulo,
     required String mensagem,
     Map<String, dynamic>? dados,
-    String? sendAfterUtc,
   }) async {
-    final Set<String> destinos = {};
-    for (final l in logins) {
-      final limpo = l.trim().toLowerCase().replaceAll('@', '');
-      if (limpo.isNotEmpty) destinos.add(limpo);
-    }
-
-    // Busca tambem o login e nome no banco para garantir entrega mesmo se passaram apenas o nome
-    try {
-      final resUsers = await supabase.from('usuarios').select('usuario, nome');
-      for (final u in resUsers) {
-        final uLogin = (u['usuario'] ?? '').toString().trim().toLowerCase().replaceAll('@', '');
-        final uNome = (u['nome'] ?? '').toString().trim().toLowerCase();
-        if (destinos.contains(uNome) && uLogin.isNotEmpty) {
-          destinos.add(uLogin);
-        }
-      }
-    } catch (_) {}
+    final destinos = logins
+        .map((l) => l.trim().toLowerCase().replaceAll('@', ''))
+        .where((l) => l.isNotEmpty)
+        .toSet()
+        .toList();
 
     if (destinos.isEmpty) return;
-    final listaDestinos = destinos.toList();
 
-    // 1. Disparo por Alias (external_id)
     try {
       final client = HttpClient();
       final request = await client.postUrl(Uri.parse('https://onesignal.com/api/v1/notifications'));
@@ -506,75 +608,32 @@ class ServicoNotificacaoOneSignal {
       final payload = {
         'app_id': _appId,
         'target_channel': 'push',
-        'include_aliases': {'external_id': listaDestinos},
+        'include_aliases': {'external_id': destinos},
         'headings': {'pt': titulo, 'en': titulo},
         'contents': {'pt': mensagem, 'en': mensagem},
+        'small_icon': 'ic_launcher',
+        'large_icon': 'ic_launcher',
+        'android_accent_color': 'FF00D4FF',
         'priority': 10,
         'android_visibility': 1,
         'android_sound': 'default',
         'ios_sound': 'default',
-        if (sendAfterUtc != null) 'send_after': sendAfterUtc,
+        'ios_badgeType': 'Increase',
+        'ios_badgeCount': 1,
         if (dados != null) 'data': dados,
       };
 
       request.add(utf8.encode(jsonEncode(payload)));
       final response = await request.close();
-      await response.transform(utf8.decoder).join();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      debugPrint("🔔 Push OneSignal (${response.statusCode}): $responseBody");
       client.close();
-    } catch (_) {}
-
-    // 2. Disparo garantido por TAG (usuario ou nome)
-    for (final dest in listaDestinos) {
-      try {
-        final client = HttpClient();
-        final request = await client.postUrl(Uri.parse('https://onesignal.com/api/v1/notifications'));
-        request.headers.set('Content-Type', 'application/json; charset=utf-8');
-        request.headers.set('Authorization', 'Basic $_restApiKey');
-
-        final payloadTag = {
-          'app_id': _appId,
-          'target_channel': 'push',
-          'filters': [
-            {'field': 'tag', 'key': 'usuario', 'relation': '=', 'value': dest},
-            {'operator': 'OR'},
-            {'field': 'tag', 'key': 'nome', 'relation': '=', 'value': dest},
-          ],
-          'headings': {'pt': titulo, 'en': titulo},
-          'contents': {'pt': mensagem, 'en': mensagem},
-          'priority': 10,
-          'android_visibility': 1,
-          'android_sound': 'default',
-          'ios_sound': 'default',
-          if (sendAfterUtc != null) 'send_after': sendAfterUtc,
-          if (dados != null) 'data': dados,
-        };
-
-        request.add(utf8.encode(jsonEncode(payloadTag)));
-        final response = await request.close();
-        await response.transform(utf8.decoder).join();
-        client.close();
-      } catch (_) {}
+    } catch (e) {
+      debugPrint("❌ Erro ao enviar notificação OneSignal: $e");
     }
   }
 
-  static Future<void> agendarAlarmeNotaPush({
-    required String tituloNota,
-    required String conteudoNota,
-    required DateTime dataAlarmeLocal,
-  }) async {
-    try {
-      final sessao = await CacheOffline.obterSessaoAtiva();
-      if (sessao == null) return;
-      final utcStr = dataAlarmeLocal.toUtc().toIso8601String();
-      await _dispararREST(
-        logins: [sessao.usuario, sessao.nome],
-        titulo: '⏰ ALARME DE EVENTO: $tituloNota',
-        mensagem: conteudoNota.isNotEmpty ? conteudoNota : 'Horário programado atingido!',
-        sendAfterUtc: utcStr,
-        dados: {'tipo': 'alarme_nota', 'titulo': tituloNota},
-      );
-    } catch (_) {}
-  }
   // 1. NOTIFICAÇÃO DE CHAT COM ÍCONE DO APP
   static Future<void> enviarNotificacaoChat({
     required String destinatarioLogin,
@@ -670,6 +729,24 @@ class ServicoNotificacaoOneSignal {
       dados: dados,
     );
   }
+
+  static Future<void> agendarAlarmeNotaPush({
+    required String tituloNota,
+    required String conteudoNota,
+    required DateTime dataAlarmeLocal,
+  }) async {
+    try {
+      final sessao = await CacheOffline.obterSessaoAtiva();
+      if (sessao == null) return;
+      final utcStr = dataAlarmeLocal.toUtc().toIso8601String();
+      await _dispararREST(
+        logins: [sessao.usuario, sessao.nome],
+        titulo: '⏰ ALARME DE EVENTO: $tituloNota',
+        mensagem: conteudoNota.isNotEmpty ? conteudoNota : 'Horário programado atingido!',
+        dados: {'tipo': 'alarme_nota', 'titulo': tituloNota},
+      );
+    } catch (_) {}
+  }
 }
 
 // ============================================================================
@@ -689,10 +766,11 @@ class BannerEletroHeinzen extends StatelessWidget {
     this.acaoDireita,
   });
 
-  @override
+    @override
   Widget build(BuildContext context) {
     final double largura = MediaQuery.of(context).size.width;
-    final bool ehDesktop = largura > 700;
+    final bool ehDesktop = largura > 650;
+    final double alturaBanner = ehDesktop ? 120.0 : (largura * 0.28).clamp(80.0, 130.0);
 
     return Container(
       width: double.infinity,
@@ -703,32 +781,25 @@ class BannerEletroHeinzen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
+            Container(
+              height: alturaBanner,
               width: double.infinity,
-              height: ehDesktop ? 130.0 : null,
+              color: const Color(0xFF071426),
               child: Image.asset(
-                'cabecalho.png',
-                width: double.infinity,
-                fit: ehDesktop ? BoxFit.fill : BoxFit.fitWidth,
+                'assets/cabecalho.png',
+                fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
                 alignment: Alignment.center,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
-                  'assets/cabecalho.png',
-                  width: double.infinity,
-                  fit: ehDesktop ? BoxFit.fill : BoxFit.fitWidth,
+                  'cabecalho.png',
+                  fit: ehDesktop ? BoxFit.contain : BoxFit.fitWidth,
                   alignment: Alignment.center,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    height: 60,
-                    width: double.infinity,
+                    height: alturaBanner,
                     color: const Color(0xFF071E3D),
                     alignment: Alignment.center,
                     child: const Text(
-                      'ELÉTRO HEINZEN',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
+                      'O.S. PRIME',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                     ),
                   ),
                 ),
@@ -766,6 +837,7 @@ class BannerEletroHeinzen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                   ],
+
                   if (subtituloTela.trim().isNotEmpty)
                     Expanded(
                       child: Container(
@@ -791,6 +863,7 @@ class BannerEletroHeinzen extends StatelessWidget {
                     )
                   else
                     const Spacer(),
+
                   if (acaoDireita != null) ...[
                     const SizedBox(width: 8),
                     acaoDireita!,
@@ -804,6 +877,7 @@ class BannerEletroHeinzen extends StatelessWidget {
     );
   }
 }
+
 class FundoComArteApp extends StatelessWidget {
   final Widget child;
   const FundoComArteApp({super.key, required this.child});
@@ -1069,8 +1143,31 @@ class PdfEngine {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              _construirCabecalhoEmpresa(),
-              pw.SizedBox(height: 10),
+                            _construirCabecalhoEmpresa(),
+              pw.SizedBox(height: 8),
+
+              // FAIXA DE DESTAQUE NO TOPO DO PDF
+              if (destaque != null && destaque.trim().isNotEmpty) ...[
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  decoration: pw.BoxDecoration(
+                    color: _corAzulMarinho,
+                    borderRadius: pw.BorderRadius.circular(3),
+                  ),
+                  child: pw.Text(
+                    destaque.trim().toUpperCase(),
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 9.5,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+              ],
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -1180,6 +1277,27 @@ class PdfEngine {
                 ),
               ),
               pw.SizedBox(height: 10),
+                            // 1. PARECER TÉCNICO / LAUDO (SEPARADO)
+              if (laudoDescritivo != null && laudoDescritivo.trim().isNotEmpty) ...[
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.all(6),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    borderRadius: pw.BorderRadius.circular(4),
+                    border: pw.Border.all(color: _corBorda, width: 0.5),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('PARECER TÉCNICO / LAUDO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: _corAzulMarinho)),
+                      pw.SizedBox(height: 2),
+                      pw.Text(laudoDescritivo.trim(), style: const pw.TextStyle(fontSize: 7.5)),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+              ],
               if (itens != null && itens.isNotEmpty) ...[
                 pw.Table(
                   columnWidths: const {
@@ -1247,7 +1365,8 @@ class PdfEngine {
                 ),
                 pw.SizedBox(height: 8),
               ],
-                            if ((obs != null && obs.trim().isNotEmpty) || (observacoes != null && observacoes.trim().isNotEmpty)) ...[
+                            // 2. OBSERVAÇÕES GERAIS / GARANTIA (SEPARADO)
+              if ((obs != null && obs.trim().isNotEmpty) || (observacoes != null && observacoes.trim().isNotEmpty)) ...[
                 pw.Container(
                   width: double.infinity,
                   padding: const pw.EdgeInsets.all(6),

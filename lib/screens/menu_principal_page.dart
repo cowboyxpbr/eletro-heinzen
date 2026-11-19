@@ -75,7 +75,7 @@ class _TelaMenuPrincipalState extends State<TelaMenuPrincipal> {
 
   void _iniciarRelogioAlarmesNotas() {
     _timerAlarmeGlobal?.cancel();
-    _timerAlarmeGlobal = Timer.periodic(const Duration(seconds: 5), (_) async {
+    _timerAlarmeGlobal = Timer.periodic(const Duration(seconds: 15), (_) async {
       if (!mounted) return;
       try {
         final notas = await CacheOffline.carregarNotasLocal(usuarioKey: widget.usuarioLogado.usuario);
@@ -223,7 +223,7 @@ class _TelaMenuPrincipalState extends State<TelaMenuPrincipal> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 5),
+                duration: const Duration(seconds: 15),
                 content: Text(
                   foiExcluido
                       ? '🚫 Seu acesso foi revogado pelo Administrador.'
@@ -275,7 +275,7 @@ class _TelaMenuPrincipalState extends State<TelaMenuPrincipal> {
   void _modalWhatsAppEquipe() async {
     List<UsuarioApp> equipe = [];
     try {
-      final res = await supabase.from('usuarios').select().order('nome').timeout(const Duration(seconds: 4));
+      final res = await supabase.from('usuarios').select().order('nome').timeout(const Duration(seconds: 15));
       if (res.isNotEmpty) {
         equipe = res.map((m) => UsuarioApp.fromMap(m)).toList();
       }

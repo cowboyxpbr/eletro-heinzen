@@ -422,7 +422,7 @@ class _TelaOSAdminState extends State<TelaOSAdmin> {
                     'endereco': endereco,
                     'cpf_cnpj': doc,
                     'documento': doc,
-                  }).select().maybeSingle().timeout(const Duration(seconds: 5));
+                  }).select().maybeSingle().timeout(const Duration(seconds: 15));
                   if (res != null && res['id'] != null) {
                     idGerado = res['id'].toString();
                   }
@@ -432,7 +432,7 @@ class _TelaOSAdminState extends State<TelaOSAdmin> {
                       'nome': nome,
                       'telefone': fone,
                       'endereco': endereco,
-                    }).select().maybeSingle().timeout(const Duration(seconds: 4));
+                    }).select().maybeSingle().timeout(const Duration(seconds: 15));
                     if (res2 != null && res2['id'] != null) {
                       idGerado = res2['id'].toString();
                     }

@@ -940,7 +940,7 @@ String? _numeroOSOrigem;
   void _modalPuxarDoFaturamento() async {
     List<Map<String, dynamic>> pendentes = [];
     try {
-      final res = await supabase.from('servicos').select().order('id', ascending: false).timeout(const Duration(seconds: 4));
+      final res = await supabase.from('servicos').select().order('id', ascending: false).timeout(const Duration(seconds: 15));
       pendentes = res.where((s) => s['status'] != 'Faturado').toList();
     } catch (_) {}
 
@@ -1027,7 +1027,7 @@ String? _numeroOSOrigem;
           .from('ordens_servico')
           .select()
           .order('id', ascending: false)
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 15));
       pendentes = List<Map<String, dynamic>>.from(res)
           .where((s) { final st = (s['status'] ?? '').toString().trim().toLowerCase(); return st != 'faturada' && st != 'cancelada' && !st.contains('exclu'); })
           .toList();
@@ -1262,7 +1262,7 @@ String? _numeroOSOrigem;
                       await CacheOffline.salvarClientesLocal(locais);
 
                       try {
-                        final res = await supabase.from('clientes').insert(novoCliente.toMap()).select().single().timeout(const Duration(seconds: 5));
+                        final res = await supabase.from('clientes').insert(novoCliente.toMap()).select().single().timeout(const Duration(seconds: 15));
                         novoCliente.id = res['id']?.toString();
                       } catch (_) {}
 

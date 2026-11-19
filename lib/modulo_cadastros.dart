@@ -151,9 +151,9 @@ class _TelaClientesState extends State<TelaClientes> {
                           'complemento': clienteAtualizado.complemento,
                         };
                         if (isEd && ed.id != null) {
-                          await supabase.from('clientes').update(payload).eq('id', ed.id!).timeout(const Duration(seconds: 5));
+                          await supabase.from('clientes').update(payload).eq('id', ed.id!).timeout(const Duration(seconds: 15));
                         } else {
-                          final res = await supabase.from('clientes').insert(payload).select().maybeSingle().timeout(const Duration(seconds: 5));
+                          final res = await supabase.from('clientes').insert(payload).select().maybeSingle().timeout(const Duration(seconds: 15));
                           if (res != null && res['id'] != null) {
                             clienteAtualizado.id = res['id'].toString();
                             await CacheOffline.salvarClientesLocal(locais);

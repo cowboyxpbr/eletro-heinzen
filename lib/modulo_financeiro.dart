@@ -340,7 +340,7 @@ class _TelaFaturamentoState extends State<TelaFaturamento> {
                       'descricao': novaDescricao,
                       'quantidade': 1,
                       'valor_unitario': totalAtualizado,
-                    }).eq('id', servico['id']).timeout(const Duration(seconds: 5));
+                    }).eq('id', servico['id']).timeout(const Duration(seconds: 15));
                   } catch (_) {}
                   if (ctx.mounted) Navigator.pop(ctx);
                 },
@@ -360,7 +360,7 @@ class _TelaFaturamentoState extends State<TelaFaturamento> {
       await supabase.from('servicos').update({
         'status': novoStatus,
         'data': DateFormat('dd/MM/yyyy').format(DateTime.now()),
-      }).eq('id', servico['id']).timeout(const Duration(seconds: 5));
+      }).eq('id', servico['id']).timeout(const Duration(seconds: 15));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -608,9 +608,9 @@ class ServicoNotificacaoOneSignal {
 
     try {
       final client = HttpClient();
-      final request = await client.postUrl(Uri.parse('https://onesignal.com/api/v1/notifications'));
+      final request = await client.postUrl(Uri.parse('https://api.onesignal.com/notifications'));
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
-      request.headers.set('Authorization', 'Basic $_restApiKey');
+      request.headers.set('Authorization', 'Key $_restApiKey');
 
       final payload = {
         'app_id': _appId,
@@ -759,6 +759,8 @@ class ServicoNotificacaoOneSignal {
 // ============================================================================
 // WIDGETS VISUAIS GLOBAIS: BANNER COMPLETO 100% LARGURA COM cabecalho.png
 // ============================================================================
+typedef BannerOSPrime = BannerEletroHeinzen;
+
 typedef BannerOSPrime = BannerEletroHeinzen;
 
 class BannerEletroHeinzen extends StatelessWidget {
@@ -1438,7 +1440,7 @@ class PdfEngine {
       ),
     );
 
-        if (fotos != null && fotos.isNotEmpty) {
+    if (fotos != null && fotos.isNotEmpty) {
       final List<pw.Widget> fotosWidgets = [];
 
       for (var f in fotos) {
@@ -1449,57 +1451,27 @@ class PdfEngine {
             final imagemPdf = pw.MemoryImage(bytes is Uint8List ? bytes : Uint8List.fromList(bytes));
 
             fotosWidgets.add(
-              pw.Container(
-                margin: const pw.EdgeInsets.only(bottom: 8),
-                padding: const pw.EdgeInsets.all(5),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: _corBorda, width: 0.5),
-                  borderRadius: pw.BorderRadius.circular(4),
-                  color: PdfColors.white,
-                ),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Container(
-                      width: 4 * PdfPageFormat.cm,
-                      height: 4 * PdfPageFormat.cm,
-                      decoration: pw.BoxDecoration(
-                        border: pw.Border.all(color: _corBorda, width: 0.5),
-                        borderRadius: pw.BorderRadius.circular(4),
-                      ),
-                      child: pw.ClipRRect(
-                        horizontalRadius: 4,
-                        verticalRadius: 4,
-                        child: pw.Image(imagemPdf, fit: pw.BoxFit.cover),
-                      ),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Container(
+                    height: 175,
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: _corBorda),
+                      borderRadius: pw.BorderRadius.circular(6),
                     ),
-                    pw.SizedBox(width: 8),
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Container(
-                            width: double.infinity,
-                            padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                            decoration: pw.BoxDecoration(color: _corAzulMarinho, borderRadius: pw.BorderRadius.circular(2)),
-                            child: pw.Text('LEGENDA DA FOTO:', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 7)),
-                          ),
-                          pw.SizedBox(height: 2),
-                          pw.Text(f.legenda.isNotEmpty ? f.legenda : 'Registro Fotográfico', style: const pw.TextStyle(fontSize: 7.5)),
-                          pw.SizedBox(height: 4),
-                          pw.Container(
-                            width: double.infinity,
-                            padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                            decoration: pw.BoxDecoration(color: _corLaranja, borderRadius: pw.BorderRadius.circular(2)),
-                            child: pw.Text('IDENTIFICAÇÃO DE AVARIA / DEFEITO:', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 7)),
-                          ),
-                          pw.SizedBox(height: 2),
-                          pw.Text(f.avaria.isNotEmpty ? f.avaria : 'Nenhuma avaria específica informada', style: const pw.TextStyle(fontSize: 7.5, color: _corTextoCinza)),
-                        ],
-                      ),
+                    child: pw.ClipRRect(
+                      horizontalRadius: 6,
+                      verticalRadius: 6,
+                      child: pw.Image(imagemPdf, fit: pw.BoxFit.cover),
                     ),
-                  ],
-                ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    f.legenda.isNotEmpty ? f.legenda : 'Registro Fotográfico',
+                    style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                  ),
+                ],
               ),
             );
           }
@@ -1507,34 +1479,69 @@ class PdfEngine {
       }
 
       pdf.addPage(
-        pw.MultiPage(
+        pw.Page(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          build: (pw.Context context) => [
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          build: (pw.Context context) {
+            return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Column(
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('ELÉTRO HEINZEN | LAUDO FOTOGRÁFICO DE CAMPO (FOTOS 4x4 CM)', style: pw.TextStyle(fontSize: 10.5, fontWeight: pw.FontWeight.bold, color: _corAzulMarinho)),
-                    pw.SizedBox(height: 2),
-                    pw.Text('Comprovação técnica de serviços, equipamentos e avarias constatadas', style: const pw.TextStyle(fontSize: 7.5, color: _corTextoCinza)),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'ELÉTRO HEINZEN | LAUDO FOTOGRÁFICO DE CAMPO',
+                          style: pw.TextStyle(fontSize: 10.5, fontWeight: pw.FontWeight.bold, color: _corAzulMarinho),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          'Comprovação técnica de serviços, equipamentos e peças da obra',
+                          style: const pw.TextStyle(fontSize: 7.5, color: _corTextoCinza),
+                        ),
+                      ],
+                    ),
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(color: _corCiano, width: 1.2),
+                        borderRadius: pw.BorderRadius.circular(4),
+                      ),
+                      child: pw.Text(
+                        'CÓDIGO: $codigoAutenticidade',
+                        style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: _corAzulMarinho),
+                      ),
+                    ),
                   ],
                 ),
-                pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: pw.BoxDecoration(border: pw.Border.all(color: _corCiano, width: 1.2), borderRadius: pw.BorderRadius.circular(4)),
-                  child: pw.Text('CÓDIGO: $codigoAutenticidade', style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: _corAzulMarinho)),
+                pw.SizedBox(height: 4),
+                pw.Container(height: 1.5, color: _corCiano),
+                pw.SizedBox(height: 12),
+                pw.Expanded(
+                  child: pw.GridView(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                    children: fotosWidgets,
+                  ),
+                ),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'Anexo integrante do documento $tipoDocumento • Autenticidade pericial vinculada',
+                      style: const pw.TextStyle(fontSize: 7, color: _corTextoCinza),
+                    ),
+                    pw.Text('Página 2 de 2', style: const pw.TextStyle(fontSize: 7, color: _corTextoCinza)),
+                  ],
                 ),
               ],
-            ),
-            pw.SizedBox(height: 4),
-            pw.Container(height: 1.5, color: _corCiano),
-            pw.SizedBox(height: 10),
-            ...fotosWidgets,
-          ],
+            );
+          },
         ),
       );
     }

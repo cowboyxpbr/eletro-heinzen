@@ -294,9 +294,22 @@ class _TelaListaOrcamentosSalvosState extends State<TelaListaOrcamentosSalvos> {
                 onPressed: gerandoOS
                     ? null
                     : () async {
-                        setD(() => gerandoOS = true);
+                                                setD(() => gerandoOS = true);
                         final numOS = "OS-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
-                        final descOS = "[ORÇAMENTO APROVADO] ${orc['descricao_itens'] ?? ''}\n${orc['laudo_descritivo'] ?? ''}".trim();
+
+                        // Formata equipamentos na descricao para o tecnico ver na O.S. sem dar erro no banco
+                        String equipamentosTxt = '';
+                        if (orc['equipamentos'] != null && orc['equipamentos'] is List) {
+                          final listaEq = (orc['equipamentos'] as List);
+                          if (listaEq.isNotEmpty) {
+                            final nomes = listaEq.map((e) => "${e['tipo']} ${e['marca']} ${e['modelo']}".trim()).where((s) => s.isNotEmpty).join(', ');
+                            if (nomes.isNotEmpty) {
+                              equipamentosTxt = "\n[Equipamentos: $nomes]";
+                            }
+                          }
+                        }
+
+                        final descOS = "[ORÇAMENTO APROVADO] ${orc['descricao_itens'] ?? ''}\n${orc['laudo_descritivo'] ?? ''}$equipamentosTxt".trim();
 
                         final novaOS = {
                           'numero_os': numOS,
@@ -309,11 +322,10 @@ class _TelaListaOrcamentosSalvosState extends State<TelaListaOrcamentosSalvos> {
                           'status': 'Pendente',
                           'data_abertura': "${DateFormat('dd/MM/yyyy').format(dataExecucao)} • ${horaExecucao.format(ctx)}",
                           'visualizado_pelo_tecnico': false,
-                          'equipamentos': jsonEncode(orc['equipamentos'] ?? []),
                         };
 
                         try {
-                          await supabase.from('ordens_servico').insert(novaOS);
+                          await supabase.from('ordens_servico').insert(novaOS).timeout(const Duration(seconds: 10));
                           ServicoNotificacaoOneSignal.enviarNotificacaoOS(
                             tecnicoLogin: tecnicoSel!,
                             numeroOS: numOS,

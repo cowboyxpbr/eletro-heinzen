@@ -27,6 +27,8 @@ jobs:
 
       - name: 1. Gerar Pasta Android e Web
         run: flutter create . --platforms=android,web
+          # Injeta permissao obrigatoria de notificacao do Android 13+
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>' android/app/src/main/AndroidManifest.xml
 
       - name: 2. Injetar google-services.json e Plugins
         env:

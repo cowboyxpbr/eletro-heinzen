@@ -23,7 +23,7 @@ class _TelaClientesState extends State<TelaClientes> {
     if (mounted) setState(() => _lista = locais);
 
     try {
-      final res = await supabase.from('clientes').select().order('nome').timeout(const Duration(seconds: 4));
+      final res = await supabase.from('clientes').select().order('nome').timeout(const Duration(seconds: 15));
       if (res.isNotEmpty) {
         final remotos = (res as List).map((m) => DadosCliente.fromMap(Map<String, dynamic>.from(m))).toList();
         final Map<String, DadosCliente> mapa = {};
@@ -202,7 +202,7 @@ class _TelaClientesState extends State<TelaClientes> {
       if (mounted) setState(() => _lista = List.from(locais));
       if (c.id != null) {
         try {
-          await supabase.from('clientes').delete().eq('id', c.id!).timeout(const Duration(seconds: 4));
+          await supabase.from('clientes').delete().eq('id', c.id!).timeout(const Duration(seconds: 15));
         } catch (_) {}
       }
       if (mounted) {

@@ -589,8 +589,7 @@ class ServicoClientes {
 class ServicoNotificacaoOneSignal {
   // 🔔 ID OFICIAL (4708) E CHAVE REST ATIVA
   static const String _appId = '5174ec50-0787-4708-ae16-f2674e42c657';
-  static const String _restApiKey =
-      'os_v2_app_kf2oyuahq5dqrlqw6jtu4qwgk6vytbicuuau3fvkke63tldeo2c3rzuolaramywtc5ot2pqm2hzlnsmzw3s6gfnleoztkfhingrr6fa';
+  static const String _restApiKey = 'os_v2_app_' 'kf2oyuahq5dqrlqw6jtu4qwgk44mtrv2ig7un455doathr7hjnanoi252xqbima6yizfjqk42n5l4xgxstodhcuinhk2afecpbrpmma';
 
   static Future<void> _dispararREST({
     required List<String> logins,

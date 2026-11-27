@@ -243,23 +243,27 @@ class EquipamentoRelatorio {
 class FotoRelatorio {
   String caminhoArquivo;
   String legenda;
+  String descricao;
   String avaria;
 
   FotoRelatorio({
     required this.caminhoArquivo,
     required this.legenda,
+    this.descricao = '',
     this.avaria = '',
   });
 
   Map<String, dynamic> toMap() => {
     'caminhoArquivo': caminhoArquivo,
     'legenda': legenda,
+    'descricao': descricao,
     'avaria': avaria,
   };
 
   factory FotoRelatorio.fromMap(Map<String, dynamic> m) => FotoRelatorio(
     caminhoArquivo: m['caminhoArquivo'] ?? '',
     legenda: m['legenda'] ?? '',
+    descricao: (m['descricao'] ?? m['obs'] ?? '').toString(),
     avaria: m['avaria'] ?? '',
   );
 }
@@ -1038,7 +1042,7 @@ class PdfEngine {
                   style: const pw.TextStyle(fontSize: 7.5, color: _corTextoCinza),
                 ),
                 pw.Text(
-                  'Fone: (47) 3050-7931 | Cel/WhatsApp: (47) 98455-3301 (Plantão)',
+                  'Fone: (47) 99649-2194 | Cel/WhatsApp: (47) 98455-3301 (Plantão)',
                   style: const pw.TextStyle(fontSize: 7.5, color: _corTextoCinza),
                 ),
               ],
@@ -1237,7 +1241,7 @@ class PdfEngine {
                           child: pw.RichText(
                             text: pw.TextSpan(
                               children: [
-                                pw.TextSpan(text: 'CLIENTE: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                                pw.TextSpan(text: 'Cliente: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                                 pw.TextSpan(text: nomeCli.toUpperCase(), style: const pw.TextStyle(fontSize: 8.5)),
                               ],
                             ),
@@ -1248,7 +1252,7 @@ class PdfEngine {
                           child: pw.RichText(
                             text: pw.TextSpan(
                               children: [
-                                pw.TextSpan(text: 'CPF/CNPJ: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                                pw.TextSpan(text: 'Doc: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                                 pw.TextSpan(text: docCli, style: const pw.TextStyle(fontSize: 8.5)),
                               ],
                             ),
@@ -1264,7 +1268,7 @@ class PdfEngine {
                           child: pw.RichText(
                             text: pw.TextSpan(
                               children: [
-                                pw.TextSpan(text: 'ENDEREÇO: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                                pw.TextSpan(text: 'End: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                                 pw.TextSpan(text: enderecoCli, style: const pw.TextStyle(fontSize: 8.5)),
                               ],
                             ),
@@ -1275,7 +1279,7 @@ class PdfEngine {
                           child: pw.RichText(
                             text: pw.TextSpan(
                               children: [
-                                pw.TextSpan(text: 'FONE: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                                pw.TextSpan(text: 'Fone: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                                 pw.TextSpan(text: foneCli, style: const pw.TextStyle(fontSize: 8.5)),
                               ],
                             ),
@@ -1300,7 +1304,7 @@ class PdfEngine {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('PARECER TÉCNICO / LAUDO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: _corAzulMarinho)),
+                      pw.Text('PARECER TÉCNICO / LAUDO: (SEPARADO)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: _corAzulMarinho)),
                       pw.SizedBox(height: 2),
                       pw.Text(laudoDescritivo.trim(), style: const pw.TextStyle(fontSize: 7.5)),
                     ],
@@ -1724,7 +1728,7 @@ class PdfEngine {
                       child: pw.RichText(
                         text: pw.TextSpan(
                           children: [
-                            pw.TextSpan(text: 'FONE: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                            pw.TextSpan(text: 'Fone: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                             pw.TextSpan(text: r.telefone, style: const pw.TextStyle(fontSize: 8.5)),
                           ],
                         ),
@@ -1739,7 +1743,7 @@ class PdfEngine {
                       child: pw.RichText(
                         text: pw.TextSpan(
                           children: [
-                            pw.TextSpan(text: 'ENDEREÇO: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
+                            pw.TextSpan(text: 'End: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5)),
                             pw.TextSpan(text: r.enderecoCompleto, style: const pw.TextStyle(fontSize: 8.5)),
                           ],
                         ),
